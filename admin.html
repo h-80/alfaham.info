@@ -32,7 +32,6 @@
         <h1>لوحة التحكم</h1>
     </div>
     <div class="container">
-        <!-- شاشة الرسائل -->
         <div id="msg-box" class="msg-box"></div>
 
         <!-- إضافة قسم -->
@@ -71,74 +70,59 @@
         </div>
     </div>
 
-    <!-- استيراد Firebase (مباشرة من السحابة) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getDatabase, ref, push, get, remove, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-        // هذا هو الكود الذي يجعل كل شيء يعمل! (مشروع 1980)
         const firebaseConfig = {
             apiKey: "AIzaSyBdpCRwQ14IdBa-gFV-Hh5d2gj_oDzdGp0",
             authDomain: "iraq-net-1980.firebaseapp.com",
+            databaseURL: "https://iraq-net-1980-default-rtdb.firebaseio.com",
             projectId: "iraq-net-1980",
             storageBucket: "iraq-net-1980.firebasestorage.app",
             messagingSenderId: "901603428041",
-            appId: "1:901603428041:web:2d97f014a67566799aaf18",
-            measurementId: "G-85CPBXHYCJ"
+            appId: "1:901603428041:web:78a9894df84ed9c09aaf18",
+            measurementId: "G-BESTP0T6PC"
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const db = getDatabase(app);
 
-        // دالة إظهار الرسائل
         function showMessage(message, type) {
             const msgBox = document.getElementById('msg-box');
             msgBox.innerHTML = message;
             msgBox.style.display = 'block';
             msgBox.classList.remove('success', 'error');
-            if (type === 'success') {
-                msgBox.classList.add('success');
-            } else if (type === 'error') {
-                msgBox.classList.add('error');
-            }
-            // إخفاء الرسالة تلقائياً بعد 5 ثواني
-            setTimeout(function() {
-                msgBox.style.display = 'none';
-            }, 5000);
+            if (type === 'success') { msgBox.classList.add('success'); }
+            else if (type === 'error') { msgBox.classList.add('error'); }
+            setTimeout(function() { msgBox.style.display = 'none'; }, 5000);
         }
 
         // إضافة قسم
         function addCategory() {
             const name = document.getElementById('new-category').value;
-            if (!name) {
-                showMessage('خطأ: أدخل اسم القسم أولاً', 'error');
-                return;
-            }
-            addDoc(collection(db, 'categories'), { name: name })
+            if (!name) { showMessage('خطأ: أدخل اسم القسم أولاً', 'error'); return; }
+            push(ref(db, 'categories'), { name: name })
                 .then(() => {
                     showMessage('تم إضافة القسم بنجاح!', 'success');
                     document.getElementById('new-category').value = '';
                     loadCategories();
                 })
-                .catch((error) => {
-                    showMessage('خطأ: لم يتم إضافة القسم. السبب: ' + error.message, 'error');
-                });
+                .catch((error) => { showMessage('خطأ: ' + error.message, 'error'); });
         }
 
         // تحميل الأقسام
         function loadCategories() {
-            getDocs(collection(db, 'categories'))
+            get(ref(db, 'categories'))
                 .then((snapshot) => {
                     const select = document.getElementById('article-category');
                     select.innerHTML = '<option value="">اختر القسم</option>';
-                    snapshot.forEach((doc) => {
-                        const cat = doc.data();
-                        select.innerHTML += `<option value="${doc.id}">${cat.name}</option>`;
+                    snapshot.forEach((child) => {
+                        const cat = child.val();
+                        select.innerHTML += `<option value="${child.key}">${cat.name}</option>`;
                     });
                 })
-                .catch((error) => {
-                    showMessage('خطأ: لم يتم تحميل الأقسام. السبب: ' + error.message, 'error');
-                });
+                .catch((error) => { showMessage('خطأ: ' + error.message, 'error'); });
         }
 
         // إضافة موضوع
@@ -147,16 +131,13 @@
             const categoryId = document.getElementById('article-category').value;
             const image = document.getElementById('article-image').value;
             const content = document.getElementById('article-content').value;
-            if (!title || !categoryId || !image || !content) {
-                showMessage('خطأ: أدخل جميع الحقول (عنوان، قسم، صورة، نص)', 'error');
-                return;
-            }
-            addDoc(collection(db, 'articles'), {
+            if (!title || !categoryId || !image || !content) { showMessage('خطأ: أدخل جميع الحقول', 'error'); return; }
+            push(ref(db, 'articles'), {
                 title: title,
                 categoryId: categoryId,
                 imageUrl: image,
                 content: content,
-                createdAt: new Date()
+                createdAt: Date.now()
             })
                 .then(() => {
                     showMessage('تم إضافة الموضوع بنجاح!', 'success');
@@ -165,45 +146,35 @@
                     document.getElementById('article-content').value = '';
                     loadArticles();
                 })
-                .catch((error) => {
-                    showMessage('خطأ: لم يتم إضافة الموضوع. السبب: ' + error.message, 'error');
-                });
+                .catch((error) => { showMessage('خطأ: ' + error.message, 'error'); });
         }
 
         // تحميل المواضيع
         function loadArticles() {
-            const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'));
-            getDocs(q)
+            get(ref(db, 'articles'))
                 .then((snapshot) => {
                     const list = document.getElementById('articles-list');
                     list.innerHTML = '';
-                    snapshot.forEach((doc) => {
-                        const article = doc.data();
+                    snapshot.forEach((child) => {
+                        const article = child.val();
                         list.innerHTML += `
                             <div class="item">
                                 <div>
                                     <strong>${article.title}</strong><br>
                                     <small>${article.content.substring(0, 50)}...</small>
                                 </div>
-                                <button class="delete-btn" onclick="deleteArticle('${doc.id}')">حذف</button>
+                                <button class="delete-btn" onclick="deleteArticle('${child.key}')">حذف</button>
                             </div>`;
                     });
                 })
-                .catch((error) => {
-                    showMessage('خطأ: لم يتم تحميل المواضيع. السبب: ' + error.message, 'error');
-                });
+                .catch((error) => { showMessage('خطأ: ' + error.message, 'error'); });
         }
 
         // حذف موضوع
         function deleteArticle(id) {
-            deleteDoc(doc(db, 'articles', id))
-                .then(() => {
-                    showMessage('تم حذف الموضوع بنجاح!', 'success');
-                    loadArticles();
-                })
-                .catch((error) => {
-                    showMessage('خطأ: لم يتم حذف الموضوع. السبب: ' + error.message, 'error');
-                });
+            remove(ref(db, 'articles', id))
+                .then(() => { showMessage('تم حذف الموضوع بنجاح!', 'success'); loadArticles(); })
+                .catch((error) => { showMessage('خطأ: ' + error.message, 'error'); });
         }
 
         loadCategories();

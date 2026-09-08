@@ -50,54 +50,50 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBdpCRwQ14IdBa-gFV-Hh5d2gj_oDzdGp0",
             authDomain: "iraq-net-1980.firebaseapp.com",
+            databaseURL: "https://iraq-net-1980-default-rtdb.firebaseio.com",
             projectId: "iraq-net-1980",
             storageBucket: "iraq-net-1980.firebasestorage.app",
             messagingSenderId: "901603428041",
-            appId: "1:901603428041:web:2d97f014a67566799aaf18",
-            measurementId: "G-85CPBXHYCJ"
+            appId: "1:901603428041:web:78a9894df84ed9c09aaf18",
+            measurementId: "G-BESTP0T6PC"
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const db = getDatabase(app);
 
-        // جلب الأقسام
         function loadCategories() {
-            getDocs(collection(db, 'categories'))
+            get(ref(db, 'categories'))
                 .then((snapshot) => {
                     const bar = document.getElementById('categories-bar');
                     bar.innerHTML = '';
-                    snapshot.forEach((doc) => {
-                        const cat = doc.data();
+                    snapshot.forEach((child) => {
+                        const cat = child.val();
                         bar.innerHTML += `<a href="#" class="category-link">${cat.name}</a>`;
                     });
                 });
         }
 
-        // جلب المواضيع
         function loadArticles() {
-            const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'));
-            getDocs(q)
+            get(ref(db, 'articles'))
                 .then((snapshot) => {
                     const articles = [];
-                    snapshot.forEach((doc) => {
-                        articles.push({ id: doc.id, ...doc.data() });
+                    snapshot.forEach((child) => {
+                        articles.push({ id: child.key, ...child.val() });
                     });
                     displayArticles(articles);
                 });
         }
 
-        // عرض المواضيع
         function displayArticles(articles) {
             const grid = document.getElementById('articles-grid');
             const mainStory = document.getElementById('main-story');
             grid.innerHTML = '';
             
-            // عرض الكرت الرئيسي
             if (articles.length > 0) {
                 const first = articles[0];
                 mainStory.style.display = 'block';
@@ -108,7 +104,6 @@
                     </a>`;
             }
             
-            // عرض الكروت الصغيرة
             for (let i = 1; i < articles.length; i++) {
                 const article = articles[i];
                 grid.innerHTML += `

@@ -3,21 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عرض الموضوع</title>
+    <title>جاري تحميل الموضوع...</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
         body { background-color: #f4f4f4; margin: 0; padding: 0; }
-        .header { background-color: #123456; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header { background: linear-gradient(135deg, #123456 0%, #0d2744 100%); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; gap: 15px; box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+        .header-logo { height: 45px; }
+        .header-logo-link { display: flex; align-items: center; }
         .header a { color: white; text-decoration: none; font-weight: bold; }
-        .container { max-width: 800px; margin: 20px auto; background: white; padding: 25px; border-radius: 10px; border: 1px solid #e0e0e0; }
-        h1 { color: #123456; margin-top: 0; }
-        .main-img { width: 100%; height: auto; border-radius: 8px; margin-bottom: 20px; display: block; }
+        .search-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; width: 42px; height: 42px; display: flex; justify-content: center; align-items: center; cursor: pointer; color: white; }
+        .search-btn svg { width: 22px; height: 22px; }
+        .search-area { display: none; flex: 1; max-width: 420px; }
+        .search-area.open { display: flex; gap: 8px; }
+        .search-area input { flex: 1; min-width: 0; padding: 10px 12px; border: 0; border-radius: 8px; font-family: inherit; }
+        .search-area button { padding: 9px 14px; border: 0; border-radius: 8px; cursor: pointer; color: #123456; font-weight: bold; }
+        .categories-bar { background-color: #ffffff; padding: 12px 20px; display: flex; gap: 12px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #e0e0e0; box-shadow: inset 0 -1px 0 rgba(0,0,0,0.04); }
+        .category-link { color: #123456; text-decoration: none; font-size: 15px; font-weight: 700; padding: 8px 12px; border-radius: 8px; }
+        .category-link:hover { color: #ff9900; background: #f7f9fb; }
+        .container { max-width: 820px; margin: 20px auto; background: white; padding: 30px; border-radius: 14px; border: 1px solid #e0e0e0; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+        h1 { color: #123456; margin-top: 0; font-size: 30px; line-height: 1.4; }
+        .main-img { width: 100%; height: auto; border-radius: 12px; margin-bottom: 20px; display: block; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
         .content { font-size: 18px; color: #333; line-height: 1.8; white-space: pre-wrap; margin-bottom: 25px; }
+        .content p { margin: 0 0 14px; }
+        .content img { max-width: 100%; height: auto; border-radius: 8px; }
+        .content a { color: #0b63a3; text-decoration: underline; }
+        .content a:hover { color: #ff9900; }
         
         /* تعديل ارتفاع وحجم الحاوية ليتناسب مع الفيديو بالكامل دون قص */
         .video-container { width: 100%; height: 350px; margin-bottom: 20px; border-radius: 8px; overflow: hidden; background: #000; }
         .video-container iframe, .video-container video { width: 100%; height: 100%; border: none; }
+        .video-error { color: #ffd6d6; background: #4b1111; padding: 12px; margin: 0; font-size: 14px; }
 
         .extra-images { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 25px; padding-bottom: 10px; }
         .extra-images img { width: 120px; height: 90px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; }
@@ -25,9 +41,21 @@
 </head>
 <body>
     <div class="header">
-        <h1>العراق نت</h1>
-        <a href="index.html">← عودة للرئيسية</a>
+        <a class="header-logo-link" href="index.html" aria-label="الرئيسية">
+            <img class="header-logo" src="https://g.top4top.io/p_3903k37401.png" alt="شعار الموقع">
+        </a>
+        <form class="search-area" id="search-area">
+            <input id="search-input" type="search" placeholder="ابحث في المواضيع" aria-label="البحث">
+            <button type="submit">بحث</button>
+        </form>
+        <button class="search-btn" title="بحث" aria-label="فتح البحث">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+        </button>
     </div>
+    <div class="categories-bar" id="categories-bar"></div>
 
     <div class="container" id="article-container">
         <p style="text-align: center;">جاري تحميل الموضوع...</p>
@@ -54,57 +82,181 @@
         const urlParams = new URLSearchParams(window.location.search);
         const articleId = urlParams.get('id');
 
+        function loadCategories() {
+            get(ref(db, 'categories')).then((snapshot) => {
+                const bar = document.getElementById('categories-bar');
+                bar.innerHTML = '<a href="index.html" class="category-link">الرئيسية</a>';
+                if (!snapshot.exists()) return;
+                snapshot.forEach((child) => {
+                    const category = child.val();
+                    bar.innerHTML += `<a href="index.html?category=${encodeURIComponent(child.key)}" class="category-link">${category.name || 'قسم'}</a>`;
+                });
+            }).catch(() => {
+                document.getElementById('categories-bar').innerHTML = '<a href="index.html" class="category-link">الرئيسية</a>';
+            });
+        }
+
+        const searchArea = document.getElementById('search-area');
+        const searchInput = document.getElementById('search-input');
+        document.querySelector('.search-btn').addEventListener('click', () => {
+            searchArea.classList.toggle('open');
+            if (searchArea.classList.contains('open')) searchInput.focus();
+        });
+        searchArea.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const query = searchInput.value.trim();
+            window.location.href = query ? `index.html?q=${encodeURIComponent(query)}` : 'index.html';
+        });
+
         function getEmbedUrl(url) {
             if (!url) return '';
-            if (url.includes('youtube.com/watch?v=')) {
-                return url.replace('watch?v=', 'embed/');
-            } else if (url.includes('youtu.be/')) {
-                const id = url.split('youtu.be/')[1].split('?')[0];
-                return `https://www.youtube.com/embed/${id}`;
+            const trimmed = url.trim();
+            try {
+                const parsedUrl = new URL(trimmed);
+                let videoId = '';
+                if (parsedUrl.hostname === 'youtu.be') {
+                    videoId = parsedUrl.pathname.slice(1);
+                } else if (parsedUrl.hostname.includes('youtube.com')) {
+                    if (parsedUrl.pathname === '/watch') videoId = parsedUrl.searchParams.get('v') || '';
+                    if (parsedUrl.pathname.startsWith('/shorts/')) videoId = parsedUrl.pathname.split('/')[2] || '';
+                    if (parsedUrl.pathname.startsWith('/live/')) videoId = parsedUrl.pathname.split('/')[2] || '';
+                    if (parsedUrl.pathname.startsWith('/embed/')) videoId = parsedUrl.pathname.split('/')[2] || '';
+                }
+                if (videoId) {
+                    const origin = window.location.protocol === 'http:' || window.location.protocol === 'https:'
+                        ? `&origin=${encodeURIComponent(window.location.origin)}`
+                        : '';
+                    return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?rel=0&playsinline=1${origin}`;
+                }
+            } catch (error) {
+                return '';
             }
-            return url;
+            return trimmed;
         }
+
+        function isHlsUrl(url) {
+            return /\.m3u8(?:$|[?#])/i.test(url || '') || /(?:format|type)=?(?:hls|application\/x-mpegurl)/i.test(url || '');
+        }
+
+        function isDashUrl(url) {
+            return /\.mpd(?:$|[?#])/i.test(url || '') || /(?:format|type)=?(?:dash|application\/dash\+xml)/i.test(url || '');
+        }
+
+        function loadHlsLibrary() {
+            if (window.Hls) return Promise.resolve(window.Hls);
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js';
+                script.onload = () => resolve(window.Hls);
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        function loadDashLibrary() {
+            if (window.dashjs) return Promise.resolve(window.dashjs);
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.dashjs.org/latest/dash.all.min.js';
+                script.onload = () => resolve(window.dashjs);
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        function showVideoError(video, message) {
+            video.insertAdjacentHTML('afterend', `<p class="video-error">${message}</p>`);
+        }
+
+        function setupHlsVideo(video, url) {
+            if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                return;
+            }
+            loadHlsLibrary().then((Hls) => {
+                if (!Hls || !Hls.isSupported()) throw new Error('HLS غير مدعوم في هذا المتصفح');
+                const player = new Hls();
+                player.loadSource(url);
+                player.attachMedia(video);
+                video.addEventListener('error', () => showVideoError(video, 'تعذر تشغيل بث HLS. تحقق من الرابط والسماح بـ CORS.'));
+            }).catch(() => {
+                showVideoError(video, 'تعذر تشغيل رابط m3u8 في هذا المتصفح. تحقق من الرابط والسماح بـ CORS.');
+            });
+        }
+
+        function setupDashVideo(video, url) {
+            loadDashLibrary().then((dashjs) => {
+                if (!dashjs || !dashjs.MediaPlayer) throw new Error('DASH غير مدعوم');
+                const player = dashjs.MediaPlayer().create();
+                player.initialize(video, url, false);
+                player.on(dashjs.MediaPlayer.events.ERROR, () => {
+                    showVideoError(video, 'تعذر تشغيل بث DASH. تحقق من الرابط والسماح بـ CORS.');
+                });
+            }).catch(() => {
+                showVideoError(video, 'تعذر تشغيل رابط mpd في هذا المتصفح.');
+            });
+        }
+
+        loadCategories();
 
         if (articleId) {
             get(ref(db, 'articles/' + articleId)).then((snapshot) => {
                 const container = document.getElementById('article-container');
                 if (snapshot.exists()) {
                     const art = snapshot.val();
-                    
+                    const title = art.title || 'عنوان غير متاح';
+                    document.title = title;
+                    const imageUrl = art.imageUrl || 'https://g.top4top.io/p_3903k37401.png';
+                    const content = art.content || 'لا توجد تفاصيل لهذا المقال.';
+                    const mainImageHtml = `<img src="${imageUrl}" alt="${title}" class="main-img">`;
+
                     let videoHtml = '';
-                    if (art.videoUrl) {
-                        const processedUrl = getEmbedUrl(art.videoUrl);
+                    const videoUrls = Array.isArray(art.videoUrls) && art.videoUrls.length
+                        ? art.videoUrls.filter(Boolean)
+                        : (art.videoUrl ? [art.videoUrl] : []);
+                    videoUrls.forEach((videoUrl, index) => {
+                        const processedUrl = getEmbedUrl(videoUrl);
                         if (processedUrl.includes('youtube.com/embed')) {
-                            videoHtml = `<div class="video-container"><iframe src="${processedUrl}" allowfullscreen></iframe></div>`;
+                            videoHtml += `<div class="video-container"><iframe src="${processedUrl}" title="فيديو الموضوع" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="origin" allowfullscreen></iframe></div>`;
+                        } else if (isHlsUrl(videoUrl)) {
+                            videoHtml += `<div class="video-container"><video id="hls-video-${index}" controls playsinline></video></div>`;
+                        } else if (isDashUrl(videoUrl)) {
+                            videoHtml += `<div class="video-container"><video id="dash-video-${index}" controls playsinline></video></div>`;
                         } else {
-                            videoHtml = `<div class="video-container"><video controls src="${art.videoUrl}"></video></div>`;
+                            videoHtml += `<div class="video-container"><video controls src="${videoUrl}"></video></div>`;
                         }
-                    }
+                    });
 
                     let extraImagesHtml = '';
                     if (art.extraImages) {
                         const imgs = art.extraImages.split(',');
                         let imgTags = '';
                         imgs.forEach(img => {
-                            if(img.trim()) {
+                            if (img && img.trim()) {
                                 imgTags += `<img src="${img.trim()}" alt="صورة إضافية">`;
                             }
                         });
-                        if(imgTags) {
+                        if (imgTags) {
                             extraImagesHtml = `<div class="extra-images">${imgTags}</div>`;
                         }
                     }
 
                     container.innerHTML = `
-                        <h1>${art.title}</h1>
-                        <img src="${art.imageUrl}" alt="${art.title}" class="main-img">
+                        <h1>${title}</h1>
+                        ${mainImageHtml}
                         ${videoHtml}
-                        <div class="content">${art.content}</div>
+                        <div class="content">${content}</div>
                         ${extraImagesHtml}
                     `;
+                    videoUrls.forEach((videoUrl, index) => {
+                        if (isHlsUrl(videoUrl)) setupHlsVideo(document.getElementById(`hls-video-${index}`), videoUrl);
+                        if (isDashUrl(videoUrl)) setupDashVideo(document.getElementById(`dash-video-${index}`), videoUrl);
+                    });
                 } else {
                     container.innerHTML = '<p style="text-align: center; color: red;">الموضوع غير موجود.</p>';
                 }
+            }).catch(() => {
+                document.getElementById('article-container').innerHTML = '<p style="text-align: center; color: red;">حدث خطأ أثناء تحميل الموضوع.</p>';
             });
         } else {
             document.getElementById('article-container').innerHTML = '<p style="text-align: center; color: red;">لم يتم تحديد الموضوع.</p>';

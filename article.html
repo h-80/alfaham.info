@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>العراق نت</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Cairo', sans-serif; }
+        body { margin: 0; background-color: #f4f4f4; }
+        .header { background-color: #123456; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .header-logo { height: 45px; }
+        .search-btn { background: transparent; border: none; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; color: white; }
+        .search-btn svg { width: 24px; height: 24px; }
+        .categories-bar { background-color: #ffffff; padding: 12px 20px; display: flex; gap: 25px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #e0e0e0; }
+        .category-link { color: #123456; text-decoration: none; font-size: 16px; font-weight: bold; transition: color 0.3s; }
+        .category-link:hover { color: #ff9900; }
+        .article-page { max-width: 900px; margin: 30px auto; padding: 20px; background-color: white; border-radius: 10px; border: 1px solid #e0e0e0; }
+        .article-title { font-size: 32px; font-weight: bold; color: #333; margin-bottom: 20px; text-align: right; }
+        .article-image { width: 100%; height: auto; display: block; margin-bottom: 20px; }
+        .article-text { font-size: 16px; color: #555; line-height: 2; text-align: right; }
+        .footer { background-color: #f4f4f4; color: #333; text-align: center; padding: 20px; margin-top: 20px; border-top: 1px solid #e0e0e0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img class="header-logo" src="https://raw.githubusercontent.com/h-80/img/refs/heads/main/T401788815613684.png" alt="شعار الموقع">
+        <button class="search-btn" title="بحث">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+        </button>
+    </div>
+    <div class="categories-bar" id="categories-bar"></div>
+
+    <div class="article-page" id="article-content"></div>
+
+    <div class="footer">جميع الحقوق محفوظة © 2025</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBdpCRwQ14IdBa-gFV-Hh5d2gj_oDzdGp0",
+            authDomain: "iraq-net-1980.firebaseapp.com",
+            projectId: "iraq-net-1980",
+            storageBucket: "iraq-net-1980.firebasestorage.app",
+            messagingSenderId: "901603428041",
+            appId: "1:901603428041:web:2d97f014a67566799aaf18",
+            measurementId: "G-85CPBXHYCJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // جلب الأقسام
+        function loadCategories() {
+            getDocs(collection(db, 'categories'))
+                .then((snapshot) => {
+                    const bar = document.getElementById('categories-bar');
+                    bar.innerHTML = '';
+                    snapshot.forEach((doc) => {
+                        const cat = doc.data();
+                        bar.innerHTML += `<a href="#" class="category-link">${cat.name}</a>`;
+                    });
+                });
+        }
+
+        // جلب الموضوع المحدد
+        function loadArticle() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            if (!id) return;
+
+            getDoc(doc(db, 'articles', id))
+                .then((docSnap) => {
+                    if (docSnap.exists()) {
+                        const article = docSnap.data();
+                        document.getElementById('article-content').innerHTML = `
+                            <h1 class="article-title">${article.title}</h1>
+                            <img class="article-image" src="${article.imageUrl}" alt="${article.title}">
+                            <div class="article-text">
+                                ${article.content}
+                            </div>`;
+                    }
+                });
+        }
+
+        loadCategories();
+        loadArticle();
+    </script>
+</body>
+</html>

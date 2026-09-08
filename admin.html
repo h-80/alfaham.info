@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
+        body { background-color: #f4f4f4; margin: 0; padding: 20px; }
+        .header { background-color: #123456; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { margin: 0; font-size: 20px; }
+        .container { max-width: 900px; margin: 30px auto; }
+        .form-box { background-color: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 30px; }
+        .form-box h2 { margin-top: 0; }
+        .field { margin-bottom: 15px; }
+        .field label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .field input, .field textarea, .field select { width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 5px; }
+        .add-btn { background-color: #123456; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; cursor: pointer; font-size: 18px; }
+        .add-btn:hover { background-color: #ff9900; color: #333; }
+        .list-box { background-color: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 20px; margin-top: 30px; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #e0e0e0; }
+        .item:last-child { border-bottom: none; }
+        .delete-btn { background-color: #cc0000; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>لوحة التحكم</h1>
+    </div>
+    <div class="container">
+        <!-- إضافة قسم -->
+        <div class="form-box">
+            <h2>إضافة قسم</h2>
+            <div class="field">
+                <input type="text" id="new-category" placeholder="اسم القسم (مثل: رياضة)">
+            </div>
+            <button class="add-btn" onclick="addCategory()">إضافة قسم</button>
+        </div>
+
+        <!-- إضافة موضوع -->
+        <div class="form-box" style="margin-top: 30px;">
+            <h2>إضافة موضوع</h2>
+            <div class="field">
+                <input type="text" id="article-title" placeholder="عنوان الموضوع">
+            </div>
+            <div class="field">
+                <select id="article-category">
+                    <option value="">اختر القسم</option>
+                </select>
+            </div>
+            <div class="field">
+                <input type="url" id="article-image" placeholder="رابط الصورة">
+            </div>
+            <div class="field">
+                <textarea id="article-content" rows="10" placeholder="نص المقالة"></textarea>
+            </div>
+            <button class="add-btn" onclick="addArticle()">إضافة موضوع</button>
+        </div>
+
+        <!-- قائمة المواضيع -->
+        <div class="list-box">
+            <h2>قائمة المواضيع</h2>
+            <div id="articles-list"></div>
+        </div>
+    </div>
+
+    <!-- استيراد Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBdpCRwQ14IdBa-gFV-Hh5d2gj_oDzdGp0",
+            authDomain: "iraq-net-1980.firebaseapp.com",
+            projectId: "iraq-net-1980",
+            storageBucket: "iraq-net-1980.firebasestorage.app",
+            messagingSenderId: "901603428041",
+            appId: "1:901603428041:web:2d97f014a67566799aaf18",
+            measurementId: "G-85CPBXHYCJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // إضافة قسم
+        function addCategory() {
+            const name = document.getElementById('new-category').value;
+            if (!name) return alert('أدخل اسم القسم');
+            addDoc(collection(db, 'categories'), { name: name })
+                .then(() => {
+                    alert('تم إضافة القسم');
+                    document.getElementById('new-category').value = '';
+                    loadCategories();
+                });
+        }
+
+        // تحميل الأقسام
+        function loadCategories() {
+            getDocs(collection(db, 'categories'))
+                .then((snapshot) => {
+                    const select = document.getElementById('article-category');
+                    select.innerHTML = '<option value="">اختر القسم</option>';
+                    snapshot.forEach((doc) => {
+                        const cat = doc.data();
+                        select.innerHTML += `<option value="${doc.id}">${cat.name}</option>`;
+                    });
+                });
+        }
+
+        // إضافة موضوع
+        function addArticle() {
+            const title = document.getElementById('article-title').value;
+            const categoryId = document.getElementById('article-category').value;
+            const image = document.getElementById('article-image').value;
+            const content = document.getElementById('article-content').value;
+            if (!title || !categoryId || !image || !content) return alert('أدخل جميع الحقول');
+            addDoc(collection(db, 'articles'), {
+                title: title,
+                categoryId: categoryId,
+                imageUrl: image,
+                content: content,
+                createdAt: new Date()
+            })
+                .then(() => {
+                    alert('تم إضافة الموضوع');
+                    document.getElementById('article-title').value = '';
+                    document.getElementById('article-image').value = '';
+                    document.getElementById('article-content').value = '';
+                    loadArticles();
+                });
+        }
+
+        // تحميل المواضيع
+        function loadArticles() {
+            const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'));
+            getDocs(q)
+                .then((snapshot) => {
+                    const list = document.getElementById('articles-list');
+                    list.innerHTML = '';
+                    snapshot.forEach((doc) => {
+                        const article = doc.data();
+                        list.innerHTML += `
+                            <div class="item">
+                                <div>
+                                    <strong>${article.title}</strong><br>
+                                    <small>${article.content.substring(0, 50)}...</small>
+                                </div>
+                                <button class="delete-btn" onclick="deleteArticle('${doc.id}')">حذف</button>
+                            </div>`;
+                    });
+                });
+        }
+
+        // حذف موضوع
+        function deleteArticle(id) {
+            deleteDoc(doc(db, 'articles', id))
+                .then(() => {
+                    alert('تم حذف الموضوع');
+                    loadArticles();
+                });
+        }
+
+        loadCategories();
+        loadArticles();
+    </script>
+</body>
+</html>

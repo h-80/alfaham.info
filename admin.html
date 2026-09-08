@@ -176,9 +176,9 @@
             });
         }
 
-        // حذف موضوع
+        // حذف موضوع (تم تصحيح المسار)
         function deleteArticle(id) {
-            remove(ref(db, 'articles', id))
+            remove(ref(db, 'articles/' + id))
                 .then(() => {
                     showMessage('✅ تم حذف الموضوع بنجاح!', 'success');
                 })
@@ -189,6 +189,11 @@
 
         loadCategories();
         loadArticles();
+
+        // ربط الدوال بنطاق النافذة العامة لتعمل مع أحداث onclick في HTML
+        window.addCategory = addCategory;
+        window.addArticle = addArticle;
+        window.deleteArticle = deleteArticle;
     </script>
 </body>
 </html>

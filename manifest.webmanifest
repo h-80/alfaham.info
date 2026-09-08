@@ -4,7 +4,7 @@
   "description": "بوابة العراق نت للأخبار والمواضيع والبث المباشر",
   "lang": "ar",
   "dir": "rtl",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f4f4",

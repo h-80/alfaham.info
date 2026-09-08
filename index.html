@@ -9,6 +9,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.webmanifest">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script>
+        if (window.location.pathname.endsWith('/index.html')) {
+            window.history.replaceState({}, document.title, window.location.pathname.slice(0, -'index.html'.length) + window.location.search + window.location.hash);
+        }
+    </script>
     <style>
         * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
         html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
@@ -94,7 +99,10 @@
             .header-logo { max-width: 150px; height: auto; }
             .search-btn { width: 38px; height: 38px; }
             .search-btn svg { width: 27px; height: 27px; }
-            .categories-bar { align-content: flex-start; flex-wrap: wrap; white-space: normal; }
+            .categories-bar { flex-wrap: nowrap; white-space: nowrap; overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+            .categories-bar::-webkit-scrollbar { height: 5px; }
+            .categories-bar::-webkit-scrollbar-thumb { background: #b7c1cc; border-radius: 10px; }
+            .category-item { flex: 0 0 auto; }
             .category-link { font-size: 13px; padding: 6px 7px; }
             .sub-menu { position: fixed; top: auto; right: 10px; left: 10px; min-width: 0; max-height: 60vh; overflow-y: auto; }
             .article-card img { width: 34%; min-width: 105px; height: 140px; }
@@ -108,7 +116,7 @@
 </head>
 <body>
     <div class="header">
-        <a class="header-logo-link" href="index.html" aria-label="الرئيسية">
+        <a class="header-logo-link" href="./" aria-label="الرئيسية">
             <img class="header-logo" src="https://g.top4top.io/p_3903k37401.png" alt="شعار الموقع">
         </a>
         <form class="search-area" id="search-area">
@@ -372,16 +380,16 @@
                     }));
                     const bar = document.getElementById('categories-bar');
                     const roots = buildCategoryTree(categories);
-                    bar.innerHTML = '<a href="index.html" class="category-link" data-id="home">الرئيسية</a>';
+                    bar.innerHTML = '<a href="./" class="category-link" data-id="home">الرئيسية</a>';
 
                     roots.forEach((category) => {
                         const childLinks = (category.children || []).map((child) => `
-                            <a href="index.html?category=${encodeURIComponent(child.id)}" class="category-link" data-id="${child.id}">${child.name}</a>
+                            <a href="./?category=${encodeURIComponent(child.id)}" class="category-link" data-id="${child.id}">${child.name}</a>
                         `).join('');
                         const submenu = childLinks ? `<button type="button" class="category-toggle" aria-label="فتح أقسام ${category.name}" aria-expanded="false">⌄</button><div class="sub-menu">${childLinks}</div>` : '';
                         bar.innerHTML += `
                             <div class="category-item">
-                                <a href="index.html?category=${encodeURIComponent(category.id)}" class="category-link" data-id="${category.id}">${category.name}</a>
+                                <a href="./?category=${encodeURIComponent(category.id)}" class="category-link" data-id="${category.id}">${category.name}</a>
                                 ${submenu}
                             </div>
                         `;
@@ -399,7 +407,7 @@
                     });
                 })
                 .catch(() => {
-                    document.getElementById('categories-bar').innerHTML = '<a href="index.html" class="category-link" data-id="home">الرئيسية</a>';
+                    document.getElementById('categories-bar').innerHTML = '<a href="./" class="category-link" data-id="home">الرئيسية</a>';
                 });
         }
 
@@ -460,7 +468,7 @@
             const params = new URLSearchParams();
             if (selectedCategory !== 'home') params.set('category', selectedCategory);
             if (query) params.set('q', query);
-            window.location.href = `index.html${params.toString() ? '?' + params.toString() : ''}`;
+            window.location.href = `./${params.toString() ? '?' + params.toString() : ''}`;
         });
 
         function displayArticles(articles) {
@@ -479,7 +487,7 @@
                     .sort((first, second) => first.name.localeCompare(second.name, 'ar'));
                 if (childCategories.length) {
                     subcategoryCards.innerHTML = childCategories.map((category) => `
-                        <a class="subcategory-card" href="index.html?category=${encodeURIComponent(category.id)}">
+                        <a class="subcategory-card" href="./?category=${encodeURIComponent(category.id)}">
                             ${category.name}
                         </a>`).join('');
                     subcategoryCards.classList.add('visible');
@@ -547,7 +555,7 @@
                     if (searchTerm) params.set('q', searchTerm);
                     if (pageNumber > 1) params.set('page', pageNumber);
                     const activeClass = pageNumber === page ? ' active' : '';
-                    pagination.innerHTML += `<a href="index.html?${params.toString()}" class="${activeClass.trim()}" aria-label="الصفحة ${pageNumber}">${pageNumber}</a>`;
+                    pagination.innerHTML += `<a href="./?${params.toString()}" class="${activeClass.trim()}" aria-label="الصفحة ${pageNumber}">${pageNumber}</a>`;
                 }
             }
         }

@@ -78,7 +78,6 @@
                         bar.innerHTML += `<a href="#" class="category-link" data-id="${child.key}">${cat.name}</a>`;
                     });
 
-                    // تفعيل الضغط على الأقسام لتصفية المقالات
                     document.querySelectorAll('.category-link').forEach(link => {
                         link.addEventListener('click', (e) => {
                             e.preventDefault();

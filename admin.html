@@ -33,7 +33,6 @@
         <h1>لوحة التحكم</h1>
     </div>
     <div class="container">
-        <!-- شاشة الرسائل -->
         <div id="msg-box" class="msg-box"></div>
 
         <!-- إضافة قسم -->
@@ -74,7 +73,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getDatabase, ref, push, get, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBdpCRwQ14IdBa-gFV-Hh5d2gj_oDzdGp0",
@@ -90,7 +89,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // دالة إظهار الرسائل (تظهر الرسالة، النجاح، الخطأ، أو التحذير)
         function showMessage(message, type) {
             const msgBox = document.getElementById('msg-box');
             msgBox.innerHTML = message;
@@ -106,34 +104,29 @@
         function addCategory() {
             const name = document.getElementById('new-category').value;
             if (!name) {
-                showMessage('⚠️ تحذير: أدخل اسم القسم أولاً قبل الضغط على إضافة', 'warning');
+                showMessage('⚠️ تحذير: أدخل اسم القسم أولاً', 'warning');
                 return;
             }
             push(ref(db, 'categories'), { name: name })
                 .then(() => {
                     showMessage('✅ تم إضافة القسم بنجاح!', 'success');
                     document.getElementById('new-category').value = '';
-                    loadCategories();
                 })
                 .catch((error) => {
-                    showMessage('❌ خطأ: لم يتم إضافة القسم. السبب: ' + error.message, 'error');
+                    showMessage('❌ خطأ: ' + error.message, 'error');
                 });
         }
 
-        // تحميل الأقسام
+        // تحميل الأقسام (باستخدام onValue حتى تظهر فوراً)
         function loadCategories() {
-            get(ref(db, 'categories'))
-                .then((snapshot) => {
-                    const select = document.getElementById('article-category');
-                    select.innerHTML = '<option value="">اختر القسم</option>';
-                    snapshot.forEach((child) => {
-                        const cat = child.val();
-                        select.innerHTML += `<option value="${child.key}">${cat.name}</option>`;
-                    });
-                })
-                .catch((error) => {
-                    showMessage('❌ خطأ: لم يتم تحميل الأقسام. السبب: ' + error.message, 'error');
+            onValue(ref(db, 'categories'), (snapshot) => {
+                const select = document.getElementById('article-category');
+                select.innerHTML = '<option value="">اختر القسم</option>';
+                snapshot.forEach((child) => {
+                    const cat = child.val();
+                    select.innerHTML += `<option value="${child.key}">${cat.name}</option>`;
                 });
+            });
         }
 
         // إضافة موضوع
@@ -143,7 +136,7 @@
             const image = document.getElementById('article-image').value;
             const content = document.getElementById('article-content').value;
             if (!title || !categoryId || !image || !content) {
-                showMessage('⚠️ تحذير: أدخل جميع الحقول (عنوان، قسم، صورة، نص)', 'warning');
+                showMessage('⚠️ تحذير: أدخل جميع الحقول', 'warning');
                 return;
             }
             push(ref(db, 'articles'), {
@@ -158,34 +151,29 @@
                     document.getElementById('article-title').value = '';
                     document.getElementById('article-image').value = '';
                     document.getElementById('article-content').value = '';
-                    loadArticles();
                 })
                 .catch((error) => {
-                    showMessage('❌ خطأ: لم يتم إضافة الموضوع. السبب: ' + error.message, 'error');
+                    showMessage('❌ خطأ: ' + error.message, 'error');
                 });
         }
 
-        // تحميل المواضيع
+        // تحميل المواضيع (باستخدام onValue حتى تظهر فوراً)
         function loadArticles() {
-            get(ref(db, 'articles'))
-                .then((snapshot) => {
-                    const list = document.getElementById('articles-list');
-                    list.innerHTML = '';
-                    snapshot.forEach((child) => {
-                        const article = child.val();
-                        list.innerHTML += `
-                            <div class="item">
-                                <div>
-                                    <strong>${article.title}</strong><br>
-                                    <small>${article.content.substring(0, 50)}...</small>
-                                </div>
-                                <button class="delete-btn" onclick="deleteArticle('${child.key}')">حذف</button>
-                            </div>`;
-                    });
-                })
-                .catch((error) => {
-                    showMessage('❌ خطأ: لم يتم تحميل المواضيع. السبب: ' + error.message, 'error');
+            onValue(ref(db, 'articles'), (snapshot) => {
+                const list = document.getElementById('articles-list');
+                list.innerHTML = '';
+                snapshot.forEach((child) => {
+                    const article = child.val();
+                    list.innerHTML += `
+                        <div class="item">
+                            <div>
+                                <strong>${article.title}</strong><br>
+                                <small>${article.content.substring(0, 50)}...</small>
+                            </div>
+                            <button class="delete-btn" onclick="deleteArticle('${child.key}')">حذف</button>
+                        </div>`;
                 });
+            });
         }
 
         // حذف موضوع
@@ -193,10 +181,9 @@
             remove(ref(db, 'articles', id))
                 .then(() => {
                     showMessage('✅ تم حذف الموضوع بنجاح!', 'success');
-                    loadArticles();
                 })
                 .catch((error) => {
-                    showMessage('❌ خطأ: لم يتم حذف الموضوع. السبب: ' + error.message, 'error');
+                    showMessage('❌ خطأ: ' + error.message, 'error');
                 });
         }
 

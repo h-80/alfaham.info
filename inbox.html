@@ -66,14 +66,30 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        let allArticles = [];
+
         function loadCategories() {
             get(ref(db, 'categories'))
                 .then((snapshot) => {
                     const bar = document.getElementById('categories-bar');
-                    bar.innerHTML = '';
+                    bar.innerHTML = '<a href="#" class="category-link" data-id="all">الكل</a>';
                     snapshot.forEach((child) => {
                         const cat = child.val();
-                        bar.innerHTML += `<a href="#" class="category-link">${cat.name}</a>`;
+                        bar.innerHTML += `<a href="#" class="category-link" data-id="${child.key}">${cat.name}</a>`;
+                    });
+
+                    // تفعيل الضغط على الأقسام لتصفية المقالات
+                    document.querySelectorAll('.category-link').forEach(link => {
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const catId = e.target.getAttribute('data-id');
+                            if (catId === 'all') {
+                                displayArticles(allArticles);
+                            } else {
+                                const filtered = allArticles.filter(art => art.categoryId === catId);
+                                displayArticles(filtered);
+                            }
+                        });
                     });
                 });
         }
@@ -81,11 +97,11 @@
         function loadArticles() {
             get(ref(db, 'articles'))
                 .then((snapshot) => {
-                    const articles = [];
+                    allArticles = [];
                     snapshot.forEach((child) => {
-                        articles.push({ id: child.key, ...child.val() });
+                        allArticles.push({ id: child.key, ...child.val() });
                     });
-                    displayArticles(articles);
+                    displayArticles(allArticles);
                 });
         }
 
@@ -98,10 +114,12 @@
                 const first = articles[0];
                 mainStory.style.display = 'block';
                 mainStory.innerHTML = `
-                    <a href="article.html?id=${first.id}">
+                    <a href="article.html?id=${first.id}" style="text-decoration: none; color: inherit;">
                         <img src="${first.imageUrl}" alt="${first.title}">
                         <h2>${first.title}</h2>
                     </a>`;
+            } else {
+                mainStory.style.display = 'none';
             }
             
             for (let i = 1; i < articles.length; i++) {
@@ -111,7 +129,7 @@
                         <img src="${article.imageUrl}" alt="${article.title}">
                         <div class="article-info">
                             <h3>${article.title}</h3>
-                            <p>${article.content.substring(0, 100)}...</p>
+                            <p>${article.content ? article.content.substring(0, 100) : ''}...</p>
                         </div>
                     </a>`;
             }

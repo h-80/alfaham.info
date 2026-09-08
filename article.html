@@ -3,40 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>العراق نت</title>
+    <title>عرض الموضوع</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        * { font-family: 'Cairo', sans-serif; }
-        body { margin: 0; background-color: #f4f4f4; }
-        .header { background-color: #123456; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .header-logo { height: 45px; }
-        .search-btn { background: transparent; border: none; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; color: white; }
-        .search-btn svg { width: 24px; height: 24px; }
-        .categories-bar { background-color: #ffffff; padding: 12px 20px; display: flex; gap: 25px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #e0e0e0; }
-        .category-link { color: #123456; text-decoration: none; font-size: 16px; font-weight: bold; transition: color 0.3s; }
-        .category-link:hover { color: #ff9900; }
-        .article-page { max-width: 900px; margin: 30px auto; padding: 20px; background-color: white; border-radius: 10px; border: 1px solid #e0e0e0; }
-        .article-title { font-size: 32px; font-weight: bold; color: #333; margin-bottom: 20px; text-align: right; }
-        .article-image { width: 100%; height: auto; display: block; margin-bottom: 20px; }
-        .article-text { font-size: 16px; color: #555; line-height: 2; text-align: right; }
-        .footer { background-color: #f4f4f4; color: #333; text-align: center; padding: 20px; margin-top: 20px; border-top: 1px solid #e0e0e0; }
+        * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
+        body { background-color: #f4f4f4; margin: 0; padding: 0; }
+        .header { background-color: #123456; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header a { color: white; text-decoration: none; font-weight: bold; }
+        .container { max-width: 800px; margin: 20px auto; background: white; padding: 25px; border-radius: 10px; border: 1px solid #e0e0e0; }
+        h1 { color: #123456; margin-top: 0; }
+        .main-img { width: 100%; height: auto; border-radius: 8px; margin-bottom: 20px; display: block; }
+        .content { font-size: 18px; color: #333; line-height: 1.8; white-space: pre-wrap; margin-bottom: 25px; }
+        .video-container { margin-bottom: 25px; text-align: center; }
+        .video-container iframe, .video-container video { width: 100%; max-height: 450px; border-radius: 8px; border: none; }
+        .extra-images { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 25px; padding-bottom: 10px; }
+        .extra-images img { width: 120px; height: 90px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
     <div class="header">
-        <a href="inbox.html"><img class="header-logo" src="https://raw.githubusercontent.com/h-80/img/refs/heads/main/T401788815613684.png" alt="شعار الموقع"></a>
-        <button class="search-btn" title="بحث">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-        </button>
+        <h1>العراق نت</h1>
+        <a href="index.html">← عودة للرئيسية</a>
     </div>
-    <div class="categories-bar" id="categories-bar"></div>
 
-    <div class="article-page" id="article-content">جاري التحميل...</div>
-
-    <div class="footer">جميع الحقوق محفوظة © 2025</div>
+    <div class="container" id="article-container">
+        <p style="text-align: center;">جاري تحميل الموضوع...</p>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -56,48 +48,67 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        function loadCategories() {
-            get(ref(db, 'categories'))
-                .then((snapshot) => {
-                    const bar = document.getElementById('categories-bar');
-                    bar.innerHTML = '<a href="inbox.html" class="category-link">الرئيسية</a>';
-                    snapshot.forEach((child) => {
-                        const cat = child.val();
-                        bar.innerHTML += `<a href="inbox.html" class="category-link">${cat.name}</a>`;
-                    });
-                });
-        }
+        const urlParams = new URLSearchParams(window.location.search);
+        const articleId = urlParams.get('id');
 
-        function loadArticle() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id');
-            
-            if (!id) {
-                document.getElementById('article-content').innerHTML = '<p style="text-align:center;">المقال غير موجود.</p>';
-                return;
+        function getEmbedUrl(url) {
+            if (!url) return '';
+            // تحويل رابط يوتيوب العادي إلى رابط تضمين Embed تلقائياً
+            if (url.includes('youtube.com/watch?v=')) {
+                return url.replace('watch?v=', 'embed/');
+            } else if (url.includes('youtu.be/')) {
+                const id = url.split('youtu.be/')[1].split('?')[0];
+                return `https://www.youtube.com/embed/${id}`;
             }
-
-            get(ref(db, 'articles/' + id))
-                .then((snapshot) => {
-                    if (snapshot.exists()) {
-                        const article = snapshot.val();
-                        document.getElementById('article-content').innerHTML = `
-                            <h1 class="article-title">${article.title}</h1>
-                            <img class="article-image" src="${article.imageUrl}" alt="${article.title}">
-                            <div class="article-text">
-                                ${article.content}
-                            </div>`;
-                    } else {
-                        document.getElementById('article-content').innerHTML = '<p style="text-align:center;">عذراً، هذا المقال غير متوفر.</p>';
-                    }
-                })
-                .catch(() => {
-                    document.getElementById('article-content').innerHTML = '<p style="text-align:center;">حدث خطأ في تحميل المقال.</p>';
-                });
+            return url;
         }
 
-        loadCategories();
-        loadArticle();
+        if (articleId) {
+            get(ref(db, 'articles/' + articleId)).then((snapshot) => {
+                const container = document.getElementById('article-container');
+                if (snapshot.exists()) {
+                    const art = snapshot.val();
+                    
+                    // تجهيز عرض الفيديو إذا وجد
+                    let videoHtml = '';
+                    if (art.videoUrl) {
+                        const processedUrl = getEmbedUrl(art.videoUrl);
+                        if (processedUrl.includes('youtube.com/embed')) {
+                            videoHtml = `<div class="video-container"><iframe src="${processedUrl}" allowfullscreen></iframe></div>`;
+                        } else {
+                            videoHtml = `<div class="video-container"><video controls src="${art.videoUrl}"></video></div>`;
+                        }
+                    }
+
+                    // تجهيز الصور الإضافية إذا وجدت
+                    let extraImagesHtml = '';
+                    if (art.extraImages) {
+                        const imgs = art.extraImages.split(',');
+                        let imgTags = '';
+                        imgs.forEach(img => {
+                            if(img.trim()) {
+                                imgTags += `<img src="${img.trim()}" alt="صورة إضافية">`;
+                            }
+                        });
+                        if(imgTags) {
+                            extraImagesHtml = `<div class="extra-images">${imgTags}</div>`;
+                        }
+                    }
+
+                    container.innerHTML = `
+                        <h1>${art.title}</h1>
+                        <img src="${art.imageUrl}" alt="${art.title}" class="main-img">
+                        ${videoHtml}
+                        <div class="content">${art.content}</div>
+                        ${extraImagesHtml}
+                    `;
+                } else {
+                    container.innerHTML = '<p style="text-align: center; color: red;">الموضوع غير موجود.</p>';
+                }
+            });
+        } else {
+            document.getElementById('article-container').innerHTML = '<p style="text-align: center; color: red;">لم يتم تحديد الموضوع.</p>';
+        }
     </script>
 </body>
 </html>

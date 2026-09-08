@@ -11,23 +11,30 @@
         .header { background: linear-gradient(135deg, #123456 0%, #0d2744 100%); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; gap: 15px; box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
         .header-logo { height: 45px; }
         .header-logo-link { display: flex; align-items: center; }
-        .search-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; width: 42px; height: 42px; display: flex; justify-content: center; align-items: center; cursor: pointer; color: white; }
-        .search-btn svg { width: 22px; height: 22px; }
+        .search-btn { background: transparent; border: 0; padding: 0; width: 42px; height: 42px; display: flex; justify-content: center; align-items: center; cursor: pointer; color: white; }
+        .search-btn svg { width: 30px; height: 30px; }
         .search-area { display: none; flex: 1; max-width: 420px; }
         .search-area.open { display: flex; gap: 8px; }
         .search-area input { flex: 1; min-width: 0; padding: 10px 12px; border: 0; border-radius: 8px; font-family: inherit; }
         .search-area button { padding: 9px 14px; border: 0; border-radius: 8px; cursor: pointer; color: #123456; font-weight: bold; }
-        .categories-bar { background-color: #ffffff; padding: 12px 20px; display: flex; gap: 12px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #e0e0e0; box-shadow: inset 0 -1px 0 rgba(0,0,0,0.04); }
+        .categories-bar { position: relative; z-index: 1000; background-color: #ffffff; padding: 12px 20px; display: flex; gap: 12px; overflow: visible; white-space: nowrap; border-bottom: 1px solid #e0e0e0; box-shadow: inset 0 -1px 0 rgba(0,0,0,0.04); }
         .category-link { color: #123456; text-decoration: none; font-size: 15px; font-weight: 700; transition: color 0.3s; padding: 8px 12px; border-radius: 8px; }
         .category-link:hover { color: #ff9900; background: #f7f9fb; }
         .main-story { margin: 28px 20px 20px; text-align: center; cursor: pointer; }
         .main-story img { width: 100%; height: auto; display: block; border-radius: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+        .main-story .featured-video { width: 100%; height: min(56vw, 520px); min-height: 280px; display: block; border: 0; border-radius: 14px; background: #000; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
         .main-story h2 { background-color: #ffffff; color: #333333; margin-top: 12px; padding: 18px 16px; font-size: 24px; border-radius: 12px; border: 1px solid #e0e0e0; }
-        .category-item { position: relative; display: inline-block; }
-        .sub-menu { position: absolute; top: 100%; right: 0; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.08); display: none; min-width: 180px; z-index: 10; padding: 8px 0; }
-        .category-item:hover .sub-menu { display: block; }
+        .category-item { position: relative; z-index: 1001; display: inline-block; }
+        .category-toggle { border: 0; background: transparent; color: #123456; cursor: pointer; padding: 8px 4px; font: inherit; font-size: 12px; vertical-align: middle; }
+        .category-toggle:hover { color: #ff9900; }
+        .sub-menu { position: absolute; top: 100%; right: 0; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.16); display: none; min-width: 180px; z-index: 1002; padding: 8px 0; }
+        .category-item.open .sub-menu, .category-item:hover .sub-menu { display: block; }
         .sub-menu a { display: block; padding: 10px 12px; color: #123456; text-decoration: none; font-weight: 700; }
         .sub-menu a:hover { background: #f4f4f4; }
+        .subcategory-cards { display: none; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .subcategory-cards.visible { display: grid; }
+        .subcategory-card { display: flex; align-items: center; min-height: 62px; padding: 12px 16px; background: #ffffff; color: #123456; border: 1px solid #dfe6ed; border-right: 4px solid #ff9900; border-radius: 10px; text-decoration: none; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s, background 0.2s; }
+        .subcategory-card:hover { background: #f7f9fb; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
         .grid-container { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 0 20px 30px 20px; max-width: 1200px; margin: 0 auto; }
         .article-card { background-color: white; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; text-decoration: none; display: flex; flex-direction: row; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
         .article-card:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(0,0,0,0.09); }
@@ -64,6 +71,7 @@
     </div>
     <div class="categories-bar" id="categories-bar"></div>
     <div class="main-story" id="main-story" style="display: none;"></div>
+    <div class="subcategory-cards" id="subcategory-cards"></div>
     <div class="grid-container" id="articles-grid"></div>
     <div class="pagination" id="pagination"></div>
     <div class="footer">جميع الحقوق محفوظة © 2026</div>
@@ -86,9 +94,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        const fallbackImage = 'https://g.top4top.io/p_3903k37401.png';
+        const fallbackImage = 'https://e.top4top.io/p_3903807hh1.png';
         let allArticles = [];
         let allCategories = [];
+        let featuredVideo = null;
 
         function normalizeArticles(snapshot) {
             if (!snapshot || !snapshot.exists()) return [];
@@ -100,6 +109,14 @@
 
         function sortByNewest(first, second) {
             return Number(second.createdAt || 0) - Number(first.createdAt || 0);
+        }
+
+        function isPinned(article) {
+            return article.pinned === true || article.pinned === 'true' || article.pinned === 1;
+        }
+
+        function isPinnedVideo(article) {
+            return article.videoPinned === true || article.videoPinned === 'true' || article.videoPinned === 1;
         }
 
         function getYoutubeVideoId(url) {
@@ -134,6 +151,79 @@
         function getArticleImageHtml(article, title) {
             const image = getArticleImage(article);
             return `<img src="${image}" alt="${title}" onerror="this.onerror=null;this.src='${fallbackImage}';">`;
+        }
+
+        function getArticleVideoUrls(article) {
+            return Array.isArray(article.videoUrls) && article.videoUrls.length
+                ? article.videoUrls.filter(Boolean)
+                : (article.videoUrl ? [article.videoUrl] : []);
+        }
+
+        function getYoutubeEmbedUrl(url) {
+            const videoId = getYoutubeVideoId(url);
+            return videoId ? `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?rel=0&playsinline=1` : '';
+        }
+
+        function isHlsUrl(url) {
+            return /\.m3u8(?:$|[?#])/i.test(url || '');
+        }
+
+        function isDashUrl(url) {
+            return /\.mpd(?:$|[?#])/i.test(url || '');
+        }
+
+        function loadExternalPlayer(src, globalName) {
+            if (window[globalName]) return Promise.resolve(window[globalName]);
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => resolve(window[globalName]);
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        function setupFeaturedStream(video, url) {
+            if (isHlsUrl(url)) {
+                if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = url;
+                    return;
+                }
+                loadExternalPlayer('https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js', 'Hls')
+                    .then((Hls) => {
+                        if (!Hls || !Hls.isSupported()) throw new Error('HLS غير مدعوم');
+                        const player = new Hls();
+                        player.loadSource(url);
+                        player.attachMedia(video);
+                    })
+                    .catch(() => { video.poster = fallbackImage; });
+            } else if (isDashUrl(url)) {
+                loadExternalPlayer('https://cdn.dashjs.org/latest/dash.all.min.js', 'dashjs')
+                    .then((dashjs) => {
+                        if (!dashjs || !dashjs.MediaPlayer) throw new Error('DASH غير مدعوم');
+                        dashjs.MediaPlayer().create().initialize(video, url, false);
+                    })
+                    .catch(() => { video.poster = fallbackImage; });
+            } else {
+                video.src = url;
+            }
+        }
+
+        function getFeaturedVideoHtml(article) {
+            const videoUrl = getArticleVideoUrls(article)[0];
+            if (!videoUrl) return '';
+            const youtubeUrl = getYoutubeEmbedUrl(videoUrl);
+            if (youtubeUrl) {
+                return `<iframe class="featured-video" src="${youtubeUrl}&autoplay=1&mute=1" title="الفيديو المثبت" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="origin" allowfullscreen></iframe>`;
+            }
+            return `<video id="featured-video-player" class="featured-video" controls autoplay muted playsinline></video>`;
+        }
+
+        function getFeaturedVideoData() {
+            if (!featuredVideo || featuredVideo.enabled !== true && featuredVideo.enabled !== 'true') return null;
+            const url = String(featuredVideo.url || '').trim();
+            if (!url) return null;
+            return { title: 'الفيديو المثبت', videoUrl: url };
         }
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -194,7 +284,7 @@
                         const childLinks = (category.children || []).map((child) => `
                             <a href="index.html?category=${encodeURIComponent(child.id)}" class="category-link" data-id="${child.id}">${child.name}</a>
                         `).join('');
-                        const submenu = childLinks ? `<div class="sub-menu">${childLinks}</div>` : '';
+                        const submenu = childLinks ? `<button type="button" class="category-toggle" aria-label="فتح أقسام ${category.name}" aria-expanded="false">⌄</button><div class="sub-menu">${childLinks}</div>` : '';
                         bar.innerHTML += `
                             <div class="category-item">
                                 <a href="index.html?category=${encodeURIComponent(category.id)}" class="category-link" data-id="${category.id}">${category.name}</a>
@@ -202,15 +292,36 @@
                             </div>
                         `;
                     });
+
+                    bar.querySelectorAll('.category-item > .category-toggle').forEach((toggle) => {
+                        const submenu = toggle.parentElement.querySelector('.sub-menu');
+                        if (!submenu) return;
+                        toggle.addEventListener('click', (event) => {
+                            event.stopPropagation();
+                            const item = toggle.parentElement;
+                            const isOpen = item.classList.toggle('open');
+                            toggle.setAttribute('aria-expanded', String(isOpen));
+                        });
+                    });
                 })
                 .catch(() => {
                     document.getElementById('categories-bar').innerHTML = '<a href="index.html" class="category-link" data-id="home">الرئيسية</a>';
                 });
         }
 
+        document.addEventListener('click', (event) => {
+            document.querySelectorAll('.category-item.open').forEach((item) => {
+                if (item.contains(event.target)) return;
+                item.classList.remove('open');
+                const toggle = item.querySelector(':scope > .category-toggle');
+                if (toggle) toggle.setAttribute('aria-expanded', 'false');
+            });
+        });
+
         function loadArticles() {
-            get(ref(db, 'articles'))
-                .then((snapshot) => {
+            Promise.all([get(ref(db, 'articles')), get(ref(db, 'featuredVideo'))])
+                .then(([snapshot, featuredSnapshot]) => {
+                    featuredVideo = featuredSnapshot.exists() ? featuredSnapshot.val() || null : null;
                     allArticles = normalizeArticles(snapshot);
                     const allowedCategoryIds = selectedCategory === 'home' ? null : getCategoryFilters(selectedCategory);
                     const filtered = allArticles.filter((article) => {
@@ -219,7 +330,20 @@
                             || (allowedCategoryIds ? allowedCategoryIds.has(article.categoryId) : false);
                         const matchesSearch = !searchTerm || searchableText.includes(searchTerm.toLowerCase());
                         return matchesCategory && matchesSearch;
-                    }).sort(sortByNewest);
+                    }).sort((first, second) => {
+                        if (selectedCategory === 'home' && isPinnedVideo(first) !== isPinnedVideo(second)) {
+                            return isPinnedVideo(first) ? -1 : 1;
+                        }
+                        if (selectedCategory === 'home' && isPinned(first) !== isPinned(second)) {
+                            return isPinned(first) ? -1 : 1;
+                        }
+                        if (selectedCategory !== 'home' && allowedCategoryIds) {
+                            const firstIsSubcategory = first.categoryId !== selectedCategory && allowedCategoryIds.has(first.categoryId);
+                            const secondIsSubcategory = second.categoryId !== selectedCategory && allowedCategoryIds.has(second.categoryId);
+                            if (firstIsSubcategory !== secondIsSubcategory) return firstIsSubcategory ? -1 : 1;
+                        }
+                        return sortByNewest(first, second);
+                    });
                     displayArticles(filtered);
                 })
                 .catch(() => {
@@ -246,9 +370,25 @@
         function displayArticles(articles) {
             const grid = document.getElementById('articles-grid');
             const mainStory = document.getElementById('main-story');
+            const subcategoryCards = document.getElementById('subcategory-cards');
             const pagination = document.getElementById('pagination');
             grid.innerHTML = '';
+            subcategoryCards.innerHTML = '';
+            subcategoryCards.classList.remove('visible');
             pagination.innerHTML = '';
+
+            if (selectedCategory !== 'home') {
+                const childCategories = allCategories
+                    .filter((category) => category.parentId === selectedCategory)
+                    .sort((first, second) => first.name.localeCompare(second.name, 'ar'));
+                if (childCategories.length) {
+                    subcategoryCards.innerHTML = childCategories.map((category) => `
+                        <a class="subcategory-card" href="index.html?category=${encodeURIComponent(category.id)}">
+                            ${category.name}
+                        </a>`).join('');
+                    subcategoryCards.classList.add('visible');
+                }
+            }
 
             if (!articles || articles.length === 0) {
                 mainStory.style.display = 'none';
@@ -261,19 +401,28 @@
             const pageStart = (page - 1) * articlesPerPage;
             const pageArticles = articles.slice(pageStart, pageStart + articlesPerPage);
             const showMainStory = selectedCategory === 'home' && !searchTerm && page === 1;
-            const cards = showMainStory ? pageArticles.slice(1) : pageArticles;
+            const hasSeparateFeaturedVideo = showMainStory && Boolean(getFeaturedVideoData());
+            const cards = showMainStory && !hasSeparateFeaturedVideo ? pageArticles.slice(1) : pageArticles;
 
             if (showMainStory) {
                 const first = pageArticles[0];
-                const mainTitle = first.title || 'عنوان غير متاح';
+                const separateFeaturedVideo = getFeaturedVideoData();
+                const featuredArticle = separateFeaturedVideo ? { videoUrl: separateFeaturedVideo.videoUrl } : first;
+                const mainTitle = separateFeaturedVideo ? separateFeaturedVideo.title : (first.title || 'عنوان غير متاح');
                 const mainImageHtml = getArticleImageHtml(first, mainTitle);
+                const featuredVideoHtml = separateFeaturedVideo
+                    ? getFeaturedVideoHtml(featuredArticle)
+                    : (isPinnedVideo(first) ? getFeaturedVideoHtml(first) : '');
+                const mainLink = separateFeaturedVideo ? '' : `article.html?id=${first.id}`;
 
                 mainStory.style.display = 'block';
                 mainStory.innerHTML = `
-                    <a href="article.html?id=${first.id}" style="text-decoration: none; color: inherit;">
-                        ${mainImageHtml}
-                        <h2>${mainTitle}</h2>
-                    </a>`;
+                    ${featuredVideoHtml || `<a href="${mainLink}" style="text-decoration: none; color: inherit;">${mainImageHtml}</a>`}
+                    ${mainLink ? `<a href="${mainLink}" style="text-decoration: none; color: inherit;"><h2>${mainTitle}</h2></a>` : ''}`;
+                const featuredUrl = getArticleVideoUrls(featuredArticle)[0];
+                if (featuredVideoHtml && !getYoutubeEmbedUrl(featuredUrl)) {
+                    setupFeaturedStream(document.getElementById('featured-video-player'), featuredUrl);
+                }
             } else {
                 mainStory.style.display = 'none';
                 mainStory.innerHTML = '';

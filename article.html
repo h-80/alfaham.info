@@ -24,7 +24,7 @@
 </head>
 <body>
     <div class="header">
-        <img class="header-logo" src="https://raw.githubusercontent.com/h-80/img/refs/heads/main/T401788815613684.png" alt="شعار الموقع">
+        <a href="inbox.html"><img class="header-logo" src="https://raw.githubusercontent.com/h-80/img/refs/heads/main/T401788815613684.png" alt="شعار الموقع"></a>
         <button class="search-btn" title="بحث">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
@@ -34,7 +34,7 @@
     </div>
     <div class="categories-bar" id="categories-bar"></div>
 
-    <div class="article-page" id="article-content"></div>
+    <div class="article-page" id="article-content">جاري التحميل...</div>
 
     <div class="footer">جميع الحقوق محفوظة © 2025</div>
 
@@ -60,10 +60,10 @@
             get(ref(db, 'categories'))
                 .then((snapshot) => {
                     const bar = document.getElementById('categories-bar');
-                    bar.innerHTML = '';
+                    bar.innerHTML = '<a href="inbox.html" class="category-link">الرئيسية</a>';
                     snapshot.forEach((child) => {
                         const cat = child.val();
-                        bar.innerHTML += `<a href="#" class="category-link">${cat.name}</a>`;
+                        bar.innerHTML += `<a href="inbox.html" class="category-link">${cat.name}</a>`;
                     });
                 });
         }
@@ -71,7 +71,11 @@
         function loadArticle() {
             const urlParams = new URLSearchParams(window.location.search);
             const id = urlParams.get('id');
-            if (!id) return;
+            
+            if (!id) {
+                document.getElementById('article-content').innerHTML = '<p style="text-align:center;">المقال غير موجود.</p>';
+                return;
+            }
 
             get(ref(db, 'articles/' + id))
                 .then((snapshot) => {
@@ -83,7 +87,12 @@
                             <div class="article-text">
                                 ${article.content}
                             </div>`;
+                    } else {
+                        document.getElementById('article-content').innerHTML = '<p style="text-align:center;">عذراً، هذا المقال غير متوفر.</p>';
                     }
+                })
+                .catch(() => {
+                    document.getElementById('article-content').innerHTML = '<p style="text-align:center;">حدث خطأ في تحميل المقال.</p>';
                 });
         }
 

@@ -33,7 +33,8 @@
         .category-toggle:hover, .category-item.open > .category-toggle { background: transparent; color: #ff9900; }
         .category-item.open > .category-toggle { transform: rotate(180deg); }
         .sub-menu { position: absolute; top: 100%; right: 0; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.16); display: none; min-width: 180px; z-index: 1002; padding: 8px 0; }
-        .category-item.open .sub-menu, .category-item:hover .sub-menu { display: block; }
+        .category-item.open .sub-menu { display: block; }
+        @media (hover: hover) and (pointer: fine) { .category-item:hover .sub-menu { display: block; } }
         .sub-menu a { display: block; padding: 10px 12px; color: #123456; text-decoration: none; font-weight: 700; }
         .sub-menu a:hover { background: #f4f4f4; }
         .latest-ticker { position: sticky; top: var(--categories-bar-height, 60px); z-index: 999; display: flex; align-items: center; gap: 12px; overflow: hidden; background: #123456; color: white; min-height: 42px; padding: 0 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }

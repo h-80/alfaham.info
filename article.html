@@ -667,8 +667,11 @@
                     const normalizedTitle = String(title).replace(/\s+/g, ' ').trim();
                     const placeholderTexts = new Set(['لا توجد تفاصيل لهذا المقال.', 'العراق نت', normalizedTitle]);
                     const hasArticleText = contentText && !placeholderTexts.has(contentText);
-                    const isVideoOnly = videoUrls.length > 0 && !hasArticleText && !art.imageUrl && !art.extraImages;
-                    const imageUrl = art.imageUrl || 'https://g.top4top.io/p_3903k37401.png';
+                    const defaultImageUrl = 'https://g.top4top.io/p_3903k37401.png';
+                    const articleImageUrl = String(art.imageUrl || '').trim();
+                    const hasCustomImage = articleImageUrl && articleImageUrl !== defaultImageUrl;
+                    const isVideoOnly = videoUrls.length > 0 && !hasArticleText && !hasCustomImage && !art.extraImages;
+                    const imageUrl = articleImageUrl || defaultImageUrl;
                     const mainImageHtml = isVideoOnly ? '' : `<img src="${imageUrl}" alt="${title}" class="main-img">`;
                     const shareDescription = contentText.slice(0, 160);
                     updateArticleShareMetadata(title, shareDescription, imageUrl);

@@ -574,12 +574,10 @@
                     featuredVideo = featuredSnapshot.exists() ? featuredSnapshot.val() || null : null;
                     allArticles = normalizeArticles(snapshot);
                     renderLatestTicker(allArticles);
-                    const selectedCategoryHasChildren = selectedCategory !== 'home'
-                        && allCategories.some((category) => category.parentId === selectedCategory);
                     const filtered = allArticles.filter((article) => {
                         const searchableText = `${article.title || ''} ${article.content || ''}`.toLowerCase();
                         const matchesCategory = selectedCategory === 'home'
-                            || (!selectedCategoryHasChildren && article.categoryId === selectedCategory);
+                            || article.categoryId === selectedCategory;
                         const matchesSearch = !searchTerm || searchableText.includes(searchTerm.toLowerCase());
                         return matchesCategory && matchesSearch;
                     }).sort((first, second) => {

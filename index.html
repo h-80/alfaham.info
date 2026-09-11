@@ -50,6 +50,9 @@
         .sub-menu .category-item { display: flex; width: 100%; }
         .sub-menu .category-item > .sub-menu { top: 0; right: 100%; }
         @media (hover: hover) and (pointer: fine) { .category-item:hover .sub-menu { display: block; } }
+        @media (hover: none), (pointer: coarse) {
+            .category-item.open > .sub-menu { display: block; }
+        }
         .sub-menu a { display: block; width: 100%; padding: 10px 12px; color: #123456; text-decoration: none; font-weight: 700; white-space: normal; word-break: break-word; }
         .sub-menu a:hover { background: #f4f4f4; }
         .latest-ticker { position: sticky; top: var(--categories-bar-height, 60px); z-index: 999; display: flex; align-items: center; gap: 12px; overflow: hidden; background: #123456; color: white; min-height: 42px; padding: 0 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
@@ -529,12 +532,33 @@
                         if (toggle) toggle.setAttribute('aria-expanded', String(isOpen));
                     };
 
-                    bar.querySelectorAll('.category-item > .category-toggle').forEach((toggle) => {
+                    const toggleButtons = bar.querySelectorAll('.category-item > .category-toggle');
+                    toggleButtons.forEach((toggle) => {
                         toggle.addEventListener('click', (event) => {
+                            event.preventDefault();
                             event.stopPropagation();
-                            toggleCategoryItem(toggle.parentElement);
+                            const parentItem = toggle.closest('.category-item');
+                            toggleCategoryItem(parentItem);
                         });
                     });
+                    if (window.matchMedia('(hover: none), (pointer: coarse)').matches) {
+                        bar.querySelectorAll('.category-item').forEach((item) => {
+                            const link = item.querySelector(':scope > .category-link');
+                            const toggle = item.querySelector(':scope > .category-toggle');
+                            if (!link || !toggle) return;
+                            link.addEventListener('click', (event) => {
+                                const submenu = item.querySelector(':scope > .sub-menu');
+                                if (!submenu) return;
+                                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                                if (window.matchMedia('(hover: none), (pointer: coarse)').matches) {
+                                    event.preventDefault();
+                                    const isOpen = item.classList.contains('open');
+                                    item.classList.toggle('open', !isOpen);
+                                    toggle.setAttribute('aria-expanded', String(!isOpen));
+                                }
+                            });
+                        });
+                    }
                 })
                 .catch(() => {
                     document.getElementById('categories-bar').innerHTML = '<a href="./" class="category-link" data-id="home">الرئيسية</a>';

@@ -445,7 +445,6 @@
         const searchTerm = urlParams.get('q') || '';
         const currentPage = Math.max(1, Number.parseInt(urlParams.get('page') || '1', 10) || 1);
         const articlesPerPage = 12;
-        const homepageCardLimit = 11;
         document.body.classList.add(selectedCategory === 'home' && !searchTerm ? 'home-page' : 'category-page');
 
         function buildCategoryTree(categories) {
@@ -655,16 +654,24 @@
                 return;
             }
 
-            const totalPages = Math.ceil(articles.length / articlesPerPage);
+            const isHomepage = selectedCategory === 'home' && !searchTerm;
+            const hasSeparateFeaturedVideo = isHomepage && Boolean(getFeaturedVideoData());
+            const homepageFeaturedArticleCount = isHomepage && !hasSeparateFeaturedVideo ? 1 : 0;
+            const homepageFirstPageSize = articlesPerPage + homepageFeaturedArticleCount;
+            const totalPages = isHomepage
+                ? (articles.length <= homepageFirstPageSize
+                    ? 1
+                    : 1 + Math.ceil((articles.length - homepageFirstPageSize) / articlesPerPage))
+                : Math.ceil(articles.length / articlesPerPage);
             const page = Math.min(currentPage, totalPages);
-            const pageStart = (page - 1) * articlesPerPage;
-            const pageArticles = articles.slice(pageStart, pageStart + articlesPerPage);
-            const showMainStory = selectedCategory === 'home' && !searchTerm && page === 1;
-            const hasSeparateFeaturedVideo = showMainStory && Boolean(getFeaturedVideoData());
+            const pageStart = isHomepage && page > 1
+                ? homepageFirstPageSize + ((page - 2) * articlesPerPage)
+                : (isHomepage ? 0 : (page - 1) * articlesPerPage);
+            const pageSize = isHomepage && page === 1 ? homepageFirstPageSize : articlesPerPage;
+            const pageArticles = articles.slice(pageStart, pageStart + pageSize);
+            const showMainStory = isHomepage && page === 1;
             const cards = showMainStory
-                ? (hasSeparateFeaturedVideo
-                    ? pageArticles.slice(0, homepageCardLimit)
-                    : pageArticles.slice(1, homepageCardLimit + 1))
+                ? (hasSeparateFeaturedVideo ? pageArticles : pageArticles.slice(1))
                 : pageArticles;
 
             if (showMainStory) {

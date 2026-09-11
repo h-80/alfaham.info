@@ -344,9 +344,6 @@
                         const toggle = item.querySelector(':scope > .category-toggle');
                         const submenu = item.querySelector(':scope > .sub-menu');
                         if (!link || !submenu) return;
-                        const canToggleFromLink = () => {
-                            return true;
-                        };
                         const toggleMenu = (shouldOpen) => {
                             const nextOpen = typeof shouldOpen === 'boolean' ? shouldOpen : !item.classList.contains('open');
                             if (window.innerWidth <= 768) {
@@ -356,30 +353,12 @@
                             item.classList.toggle('open', nextOpen);
                             if (toggle) toggle.setAttribute('aria-expanded', String(nextOpen));
                         };
-                        link.addEventListener('pointerdown', (event) => {
-                            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                            if (!canToggleFromLink()) return;
-                            event.preventDefault();
-                            toggleMenu();
-                        });
                         link.addEventListener('click', (event) => {
                             if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                            if (!canToggleFromLink()) return;
+                            if (item.classList.contains('open')) return;
                             event.preventDefault();
                             toggleMenu();
                         });
-                        if (toggle) {
-                            toggle.addEventListener('pointerdown', (event) => {
-                                event.preventDefault();
-                                event.stopPropagation();
-                                toggleMenu();
-                            });
-                            toggle.addEventListener('click', (event) => {
-                                event.preventDefault();
-                                event.stopPropagation();
-                                toggleMenu();
-                            });
-                        }
                     });
                 }
                 if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) {

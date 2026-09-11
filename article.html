@@ -116,6 +116,7 @@
             .categories-bar { position: sticky; top: 0; min-height: 42px; padding: 4px 12px; gap: 4px 8px; flex-wrap: nowrap; white-space: nowrap; overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; scrollbar-width: thin; z-index: 1100; }
             .category-item { flex: 0 0 auto; z-index: 1200; }
             .category-link { font-size: 14px; padding: 6px 9px; white-space: nowrap; }
+            .sub-menu { position: fixed; top: var(--category-menu-top, 48px); right: 10px; left: 10px; min-width: 0; max-height: 60vh; overflow-y: auto; z-index: 5000; }
             .latest-ticker { width: 100%; max-width: 100%; padding: 0 12px; gap: 8px; }
             .latest-ticker-label { padding: 5px 8px; font-size: 12px; }
             .latest-ticker-link { font-size: 13px; }
@@ -139,7 +140,6 @@
             .categories-bar::-webkit-scrollbar-thumb { background: #b7c1cc; border-radius: 10px; }
             .category-item { flex: 0 0 auto; }
             .category-link { font-size: 13px; padding: 6px 7px; }
-            .sub-menu { position: fixed; top: 88px; right: 10px; left: 10px; min-width: 0; max-height: 60vh; overflow-y: auto; z-index: 3000; }
             .main-img { border-radius: 8px; }
             .share-button, .notification-button { width: 38px; height: 38px; }
             .share-button svg, .notification-button svg { width: 19px; height: 19px; }
@@ -350,6 +350,10 @@
                         };
                         const toggleMenu = (shouldOpen) => {
                             const nextOpen = typeof shouldOpen === 'boolean' ? shouldOpen : !item.classList.contains('open');
+                            if (window.innerWidth <= 768) {
+                                const barBottom = bar.getBoundingClientRect().bottom;
+                                document.documentElement.style.setProperty('--category-menu-top', `${Math.max(4, barBottom + 4)}px`);
+                            }
                             item.classList.toggle('open', nextOpen);
                             if (toggle) toggle.setAttribute('aria-expanded', String(nextOpen));
                         };

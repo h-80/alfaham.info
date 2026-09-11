@@ -649,11 +649,7 @@
                     const art = snapshot.val();
                     const title = art.title || 'عنوان غير متاح';
                     document.title = title;
-                    const imageUrl = art.imageUrl || 'https://g.top4top.io/p_3903k37401.png';
                     const content = art.content || 'لا توجد تفاصيل لهذا المقال.';
-                    const mainImageHtml = `<img src="${imageUrl}" alt="${title}" class="main-img">`;
-                    const shareDescription = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
-                    updateArticleShareMetadata(title, shareDescription, imageUrl);
 
                     let videoHtml = '';
                     const videoUrls = Array.isArray(art.videoUrls) && art.videoUrls.length
@@ -667,6 +663,15 @@
                             videoHtml += `<div class="video-container"><video id="article-video-${index}" controls playsinline></video></div>`;
                         }
                     });
+                    const contentText = String(content).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                    const normalizedTitle = String(title).replace(/\s+/g, ' ').trim();
+                    const placeholderTexts = new Set(['لا توجد تفاصيل لهذا المقال.', 'العراق نت', normalizedTitle]);
+                    const hasArticleText = contentText && !placeholderTexts.has(contentText);
+                    const isVideoOnly = videoUrls.length > 0 && !hasArticleText && !art.imageUrl && !art.extraImages;
+                    const imageUrl = art.imageUrl || 'https://g.top4top.io/p_3903k37401.png';
+                    const mainImageHtml = isVideoOnly ? '' : `<img src="${imageUrl}" alt="${title}" class="main-img">`;
+                    const shareDescription = contentText.slice(0, 160);
+                    updateArticleShareMetadata(title, shareDescription, imageUrl);
 
                     let extraImagesHtml = '';
                     if (art.extraImages) {
@@ -683,10 +688,10 @@
                     }
 
                     container.innerHTML = `
-                        <h1>${title}</h1>
+                        ${isVideoOnly ? '' : `<h1>${title}</h1>`}
                         ${mainImageHtml}
                         ${videoHtml}
-                        <div class="content">${content}</div>
+                        ${isVideoOnly ? '' : `<div class="content">${content}</div>`}
                         ${buildShareHtml(title)}
                         ${extraImagesHtml}
                     `;

@@ -42,10 +42,11 @@
         .main-story .featured-video { width: 100%; height: min(56vw, 520px); min-height: 280px; display: block; border: 0; border-radius: 0; background: #000; }
         .main-story h2 { background-color: #ffffff; color: #333333; margin: 0; padding: 16px; font-size: 24px; line-height: 1.5; }
         .category-item { position: relative; z-index: 1001; display: inline-flex; align-items: center; }
+        .category-item.open { z-index: 2000; }
         .category-toggle { flex: 0 0 28px; width: 28px; height: 28px; margin-right: 2px; border: 0; background: transparent; color: #123456; cursor: pointer; padding: 0; font: inherit; font-size: 25px; font-weight: 900; line-height: 22px; text-align: center; transition: transform 0.2s, color 0.2s; }
         .category-toggle:hover, .category-item.open > .category-toggle { background: transparent; color: #ff9900; }
         .category-item.open > .category-toggle { transform: rotate(180deg); }
-        .sub-menu { position: absolute; top: 100%; right: 0; min-width: 250px; max-width: 90vw; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.16); display: none; z-index: 1002; padding: 8px 0; }
+        .sub-menu { position: absolute; top: 100%; right: 0; min-width: 250px; max-width: 90vw; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.16); display: none; z-index: 4000; padding: 8px 0; }
         .category-item.open .sub-menu { display: block; }
         .sub-menu .category-item { display: flex; width: 100%; }
         .sub-menu .category-item > .sub-menu { top: 0; right: 100%; }
@@ -106,8 +107,8 @@
             .header-logo { height: 40px; }
             .search-btn { margin-right: auto; }
             .search-area.open { order: 3; flex-basis: 100%; max-width: none; }
-            .categories-bar { position: sticky; top: 0; min-height: 42px; padding: 4px 12px; gap: 4px 8px; flex-wrap: nowrap; white-space: nowrap; overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
-            .category-item { flex: 0 0 auto; }
+            .categories-bar { position: sticky; top: 0; min-height: 42px; padding: 4px 12px; gap: 4px 8px; flex-wrap: nowrap; white-space: nowrap; overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; scrollbar-width: thin; z-index: 1100; }
+            .category-item { flex: 0 0 auto; z-index: 1200; }
             .category-link { font-size: 14px; padding: 6px 9px; white-space: nowrap; }
             .latest-ticker { width: 100%; max-width: 100%; padding: 0 12px; gap: 8px; }
             .latest-ticker-label { padding: 5px 8px; font-size: 12px; }
@@ -547,17 +548,40 @@
                             const link = item.querySelector(':scope > .category-link');
                             const toggle = item.querySelector(':scope > .category-toggle');
                             const submenu = item.querySelector(':scope > .sub-menu');
-                            if (!link || !toggle || !submenu) return;
-                            link.addEventListener('click', (event) => {
+                            if (!link || !submenu) return;
+                            const canToggleFromLink = () => {
                                 const href = link.getAttribute('href') || '';
-                                const isInternalCategoryLink = href.includes('category=') || href.startsWith('./?category=') || href.startsWith('?category=');
+                                return href.includes('category=') || href.startsWith('./?category=') || href.startsWith('?category=');
+                            };
+                            const toggleMenu = (shouldOpen) => {
+                                const nextOpen = typeof shouldOpen === 'boolean' ? shouldOpen : !item.classList.contains('open');
+                                item.classList.toggle('open', nextOpen);
+                                if (toggle) toggle.setAttribute('aria-expanded', String(nextOpen));
+                            };
+                            link.addEventListener('pointerdown', (event) => {
                                 if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                                if (!isInternalCategoryLink) return;
+                                if (!canToggleFromLink()) return;
                                 event.preventDefault();
-                                const isOpen = item.classList.contains('open');
-                                item.classList.toggle('open', !isOpen);
-                                toggle.setAttribute('aria-expanded', String(!isOpen));
+                                toggleMenu();
                             });
+                            link.addEventListener('click', (event) => {
+                                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                                if (!canToggleFromLink()) return;
+                                event.preventDefault();
+                                toggleMenu();
+                            });
+                            if (toggle) {
+                                toggle.addEventListener('pointerdown', (event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    toggleMenu();
+                                });
+                                toggle.addEventListener('click', (event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    toggleMenu();
+                                });
+                            }
                         });
                     }
                 })

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iraq-net-shell-v1';
+const CACHE_NAME = 'iraq-net-shell-v2';
 const APP_SHELL = ['./', './index.html', './article.html', './admin.html', './manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {

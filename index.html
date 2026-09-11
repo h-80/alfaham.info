@@ -46,7 +46,7 @@
         .category-toggle { flex: 0 0 28px; width: 28px; height: 28px; margin-right: 2px; border: 0; background: transparent; color: #123456; cursor: pointer; padding: 0; font: inherit; font-size: 25px; font-weight: 900; line-height: 22px; text-align: center; transition: transform 0.2s, color 0.2s; }
         .category-toggle:hover, .category-item.open > .category-toggle { background: transparent; color: #ff9900; }
         .category-item.open > .category-toggle { transform: rotate(180deg); }
-        .sub-menu { position: absolute; top: 100%; right: 0; min-width: 250px; max-width: 90vw; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.16); display: none; z-index: 4000; padding: 8px 0; }
+        .sub-menu { position: absolute; top: calc(100% + 4px); right: 0; min-width: 250px; max-width: 90vw; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.16); display: none; z-index: 4000; padding: 8px 0; }
         .category-item.open .sub-menu { display: block; }
         .sub-menu .category-item { display: flex; width: 100%; }
         .sub-menu .category-item > .sub-menu { top: 0; right: 100%; }

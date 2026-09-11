@@ -438,29 +438,38 @@
         document.body.classList.add(selectedCategory === 'home' && !searchTerm ? 'home-page' : 'category-page');
 
         function buildCategoryTree(categories) {
-            const entries = Object.entries(categories);
+            const entries = Object.entries(categories || {});
             const map = new Map(entries);
-            const roots = [];
-            const emitted = new Set();
-            const makeItem = (id, ancestors = new Set()) => {
-                if (ancestors.has(id) || emitted.has(id) || !map.has(id)) return null;
+            const childMap = new Map();
+            entries.forEach(([id, value]) => {
+                const parentId = value?.parentId || null;
+                if (!childMap.has(parentId)) childMap.set(parentId, []);
+                if (parentId) childMap.get(parentId).push(id);
+            });
+            const makeItem = (id, seen = new Set()) => {
+                if (seen.has(id) || !map.has(id)) return null;
                 const value = map.get(id) || {};
-                const item = { id, name: value.name || value.nam || value.title || value.label || 'قسم', parentId: value.parentId || null, url: value.url || '', children: [] };
-                emitted.add(id);
-                const nextAncestors = new Set(ancestors);
-                nextAncestors.add(id);
-                entries.forEach(([childId, childValue]) => {
-                    if (childValue?.parentId !== id) return;
-                    const child = makeItem(childId, nextAncestors);
+                const item = {
+                    id,
+                    name: value.name || value.nam || value.title || value.label || 'قسم',
+                    parentId: value.parentId || null,
+                    url: value.url || '',
+                    children: []
+                };
+                const nextSeen = new Set(seen);
+                nextSeen.add(id);
+                const childIds = childMap.get(id) || [];
+                childIds.forEach((childId) => {
+                    const child = makeItem(childId, nextSeen);
                     if (child) item.children.push(child);
                 });
                 return item;
             };
-            entries.filter(([id, value]) => !value?.parentId || !map.has(value.parentId)).forEach(([id]) => {
-                const root = makeItem(id);
-                if (root) roots.push(root);
-            });
-            entries.forEach(([id]) => {
+            const roots = [];
+            const rootIds = entries
+                .filter(([id, value]) => !value?.parentId || !map.has(value.parentId))
+                .map(([id]) => id);
+            rootIds.forEach((id) => {
                 const root = makeItem(id);
                 if (root) roots.push(root);
             });
@@ -469,7 +478,19 @@
 
         function getCategoryFilters(categoryId) {
             if (!categoryId || categoryId === 'home') return null;
-            return new Set([categoryId]);
+            const ids = new Set([categoryId]);
+            const queue = [categoryId];
+            while (queue.length) {
+                const currentId = queue.shift();
+                const children = allCategories.filter((category) => category.parentId === currentId);
+                children.forEach((child) => {
+                    if (!ids.has(child.id)) {
+                        ids.add(child.id);
+                        queue.push(child.id);
+                    }
+                });
+            }
+            return ids;
         }
 
         function loadCategories() {

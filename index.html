@@ -660,7 +660,9 @@
             const pageArticles = articles.slice(pageStart, pageStart + articlesPerPage);
             const showMainStory = selectedCategory === 'home' && !searchTerm && page === 1;
             const hasSeparateFeaturedVideo = showMainStory && Boolean(getFeaturedVideoData());
-            const cards = showMainStory && !hasSeparateFeaturedVideo ? pageArticles.slice(1) : pageArticles;
+            const cards = showMainStory
+                ? (hasSeparateFeaturedVideo ? pageArticles.slice(0, 11) : pageArticles.slice(1))
+                : pageArticles;
 
             if (showMainStory) {
                 const first = pageArticles[0];

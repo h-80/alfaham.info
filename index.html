@@ -443,7 +443,7 @@
         const selectedCategory = urlParams.get('category') || 'home';
         const searchTerm = urlParams.get('q') || '';
         const currentPage = Math.max(1, Number.parseInt(urlParams.get('page') || '1', 10) || 1);
-        const articlesPerPage = 11;
+        const articlesPerPage = 12;
         document.body.classList.add(selectedCategory === 'home' && !searchTerm ? 'home-page' : 'category-page');
 
         function buildCategoryTree(categories) {

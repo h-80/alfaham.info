@@ -669,10 +669,12 @@
                     const placeholderTexts = new Set(['لا توجد تفاصيل لهذا المقال.', 'العراق نت', normalizedTitle]);
                     const hasArticleText = contentText && !placeholderTexts.has(contentText);
                     const hasCustomImage = Boolean(String(art.imageUrl || '').trim());
+                    const hasContentImage = /<img\b/i.test(String(content));
                     const hasVideo = videoUrls.length > 0;
                     const hasYoutubeVideo = youtubeVideoUrls.length > 0;
-                    const isYoutubeOnly = hasYoutubeVideo && !hasArticleText && !hasCustomImage;
-                    const isVideoOnly = hasVideo && !hasArticleText;
+                    const hasArticleDetails = hasArticleText || hasCustomImage || hasContentImage;
+                    const isYoutubeOnly = hasYoutubeVideo && !hasArticleDetails;
+                    const isVideoOnly = hasVideo && !hasArticleDetails;
                     const imageUrl = art.imageUrl || 'https://g.top4top.io/p_3903k37401.png';
                     const mainImageHtml = (hasVideo && !hasYoutubeVideo) || (hasArticleText && hasCustomImage) || (!hasYoutubeVideo && !hasVideo && !isYoutubeOnly && hasCustomImage) ? `<img src="${imageUrl}" alt="${title}" class="main-img">` : '';
                     const shareDescription = contentText.slice(0, 160);

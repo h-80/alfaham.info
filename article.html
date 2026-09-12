@@ -473,11 +473,7 @@
             }
             loadHlsLibrary().then((Hls) => {
                 if (!Hls || !Hls.isSupported()) throw new Error('HLS غير مدعوم في هذا المتصفح');
-                const player = new Hls({
-                    enableWorker: true,
-                    lowLatencyMode: true,
-                    backBufferLength: 30
-                });
+                const player = new Hls();
                 video._streamPlayer = player;
                 player.loadSource(url);
                 player.attachMedia(video);
@@ -508,6 +504,7 @@
                 video._streamPlayer = player;
                 player.attachMediaElement(video);
                 player.load();
+                player.play().catch(() => {});
                 player.on(mpegts.Events.ERROR, () => showVideoError(video, 'تعذر تشغيل بث FLV أو MPEG-TS.'));
             }).catch(() => {
                 showVideoError(video, 'تعذر تشغيل رابط FLV أو MPEG-TS في هذا المتصفح.');

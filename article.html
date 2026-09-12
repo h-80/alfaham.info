@@ -655,21 +655,26 @@
                     const videoUrls = Array.isArray(art.videoUrls) && art.videoUrls.length
                         ? art.videoUrls.filter(Boolean)
                         : (art.videoUrl ? [art.videoUrl] : []);
+                    const youtubeVideoUrls = videoUrls.filter((videoUrl) => getEmbedUrl(videoUrl).includes('youtube.com/embed'));
                     videoUrls.forEach((videoUrl, index) => {
                         const processedUrl = getEmbedUrl(videoUrl);
                         if (processedUrl.includes('youtube.com/embed')) {
-                            videoHtml += `<div class="video-container"><iframe src="${processedUrl}" title="فيديو الموضوع" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="origin" allowfullscreen></iframe></div>`;
+                            videoHtml += `<div class="video-container"><iframe src="${processedUrl}" title="فيديو الموضوع" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="origin" allowfullscreen></iframe></div>`;
                         } else {
-                            videoHtml += `<div class="video-container"><video id="article-video-${index}" controls playsinline></video></div>`;
+                            videoHtml += `<div class="video-container"><video id="article-video-${index}" controls playsinline preload="metadata"></video></div>`;
                         }
                     });
                     const contentText = String(content).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
                     const normalizedTitle = String(title).replace(/\s+/g, ' ').trim();
                     const placeholderTexts = new Set(['لا توجد تفاصيل لهذا المقال.', 'العراق نت', normalizedTitle]);
                     const hasArticleText = contentText && !placeholderTexts.has(contentText);
-                    const isVideoOnly = videoUrls.length > 0 && !hasArticleText;
+                    const hasCustomImage = Boolean(String(art.imageUrl || '').trim());
+                    const hasVideo = videoUrls.length > 0;
+                    const hasYoutubeVideo = youtubeVideoUrls.length > 0;
+                    const isYoutubeOnly = hasYoutubeVideo && !hasArticleText && !hasCustomImage;
+                    const isVideoOnly = hasVideo && !hasArticleText;
                     const imageUrl = art.imageUrl || 'https://g.top4top.io/p_3903k37401.png';
-                    const mainImageHtml = isVideoOnly ? '' : `<img src="${imageUrl}" alt="${title}" class="main-img">`;
+                    const mainImageHtml = (hasVideo && !hasYoutubeVideo) || (hasArticleText && hasCustomImage) || (!hasYoutubeVideo && !hasVideo && !isYoutubeOnly && hasCustomImage) ? `<img src="${imageUrl}" alt="${title}" class="main-img">` : '';
                     const shareDescription = contentText.slice(0, 160);
                     updateArticleShareMetadata(title, shareDescription, imageUrl);
 

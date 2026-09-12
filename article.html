@@ -461,6 +461,8 @@
         }
 
         function showVideoError(video, message) {
+            if (!video || video.dataset.videoErrorShown) return;
+            video.dataset.videoErrorShown = 'true';
             video.insertAdjacentHTML('afterend', `<p class="video-error">${message}</p>`);
         }
 
@@ -471,7 +473,12 @@
             }
             loadHlsLibrary().then((Hls) => {
                 if (!Hls || !Hls.isSupported()) throw new Error('HLS غير مدعوم في هذا المتصفح');
-                const player = new Hls();
+                const player = new Hls({
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    backBufferLength: 30
+                });
+                video._streamPlayer = player;
                 player.loadSource(url);
                 player.attachMedia(video);
                 video.addEventListener('error', () => showVideoError(video, 'تعذر تشغيل بث HLS. تحقق من الرابط والسماح بـ CORS.'));
@@ -484,6 +491,7 @@
             loadDashLibrary().then((dashjs) => {
                 if (!dashjs || !dashjs.MediaPlayer) throw new Error('DASH غير مدعوم');
                 const player = dashjs.MediaPlayer().create();
+                video._streamPlayer = player;
                 player.initialize(video, url, false);
                 player.on(dashjs.MediaPlayer.events.ERROR, () => {
                     showVideoError(video, 'تعذر تشغيل بث DASH. تحقق من الرابط والسماح بـ CORS.');
@@ -497,9 +505,9 @@
             loadMpegtsLibrary().then((mpegts) => {
                 if (!mpegts || !mpegts.isSupported()) throw new Error('FLV غير مدعوم');
                 const player = mpegts.createPlayer({ type: 'flv', url });
+                video._streamPlayer = player;
                 player.attachMediaElement(video);
                 player.load();
-                player.play().catch(() => {});
                 player.on(mpegts.Events.ERROR, () => showVideoError(video, 'تعذر تشغيل بث FLV أو MPEG-TS.'));
             }).catch(() => {
                 showVideoError(video, 'تعذر تشغيل رابط FLV أو MPEG-TS في هذا المتصفح.');
@@ -512,11 +520,8 @@
             if (isDashUrl(url)) return setupDashVideo(video, url);
             if (isFlvUrl(url)) return setupFlvVideo(video, url);
             video.src = url;
-            video.addEventListener('error', () => {
-                if (video.dataset.streamFallback) return;
-                video.dataset.streamFallback = 'true';
-                setupHlsVideo(video, url);
-            }, { once: true });
+            video.load();
+            video.addEventListener('error', () => showVideoError(video, 'تعذر تشغيل رابط الفيديو. تحقق من الرابط والسماح بـ CORS.'), { once: true });
         }
 
         function buildShareHtml(title) {
